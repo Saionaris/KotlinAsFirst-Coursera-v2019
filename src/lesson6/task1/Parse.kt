@@ -2,6 +2,12 @@
 
 package lesson6.task1
 
+import lesson2.task2.daysInMonth
+import java.lang.IllegalArgumentException
+import java.lang.IndexOutOfBoundsException
+import java.lang.NumberFormatException
+import kotlin.math.max
+
 /**
  * Пример
  *
@@ -69,7 +75,37 @@ fun main() {
  * Обратите внимание: некорректная с точки зрения календаря дата (например, 30.02.2009) считается неверными
  * входными данными.
  */
-fun dateStrToDigit(str: String): String = TODO()
+fun dateStrToDigit(str: String): String {
+    val months = listOf<String>(
+        "января",
+        "февраля",
+        "марта",
+        "апреля",
+        "мая",
+        "июня",
+        "июля",
+        "августа",
+        "сентября",
+        "октября",
+        "ноября",
+        "декабря"
+    )
+    val parts = str.split(" ")
+    if (parts.size < 3) return ""
+    val day: Int
+    val month: Int
+    val year: Int
+    try {
+        day = parts[0].toInt()
+        month = months.indexOf(parts[1]) + 1
+        if (month == 0) return ""
+        year = parts[2].toInt()
+        if (day > daysInMonth(month, year)) return ""
+    } catch (e: NumberFormatException) {
+        return ""
+    }
+    return String.format("%02d.%02d.%d", day, month, year)
+}
 
 /**
  * Средняя
@@ -81,7 +117,37 @@ fun dateStrToDigit(str: String): String = TODO()
  * Обратите внимание: некорректная с точки зрения календаря дата (например, 30 февраля 2009) считается неверными
  * входными данными.
  */
-fun dateDigitToStr(digital: String): String = TODO()
+fun dateDigitToStr(digital: String): String {
+    val months = listOf(
+        "января",
+        "февраля",
+        "марта",
+        "апреля",
+        "мая",
+        "июня",
+        "июля",
+        "августа",
+        "сентября",
+        "октября",
+        "ноября",
+        "декабря"
+    )
+    val parts = digital.split(".")
+    if (parts.size != 3) return ""
+    val day: Int
+    val month: Int
+    val year: Int
+    try {
+        day = parts[0].toInt()
+        month = parts[1].toInt()
+        year = parts[2].toInt()
+    } catch (e: NumberFormatException) {
+        return ""
+    }
+    if (month < 1) return ""
+    if (day > daysInMonth(month, year)) return ""
+    return String.format("%d %s %d", day, months[month - 1], year)
+}
 
 /**
  * Средняя
@@ -97,7 +163,17 @@ fun dateDigitToStr(digital: String): String = TODO()
  *
  * PS: Дополнительные примеры работы функции можно посмотреть в соответствующих тестах.
  */
-fun flattenPhoneNumber(phone: String): String = TODO()
+fun flattenPhoneNumber(phone: String): String {
+    val dop = listOf(' ', '+', '-', '(', ')')
+    val numbers = listOf('1', '2', '3', '4', '5', '6', '7', '8', '9')
+    var newPhone = ""
+    for (i in phone) {
+        if (i !in dop && i !in numbers) return ""
+        if (newPhone.isEmpty() && i == '+') newPhone = "+"
+        if (i in numbers) newPhone += i
+    }
+    return newPhone
+}
 
 /**
  * Средняя
@@ -122,7 +198,25 @@ fun bestLongJump(jumps: String): Int = TODO()
  * При нарушении формата входной строки, а также в случае отсутствия удачных попыток,
  * вернуть -1.
  */
-fun bestHighJump(jumps: String): Int = TODO()
+fun bestHighJump(jumps: String): Int {
+    val numbers = listOf('0', '1', '2', '3', '4', '5', '6', '7', '8', '9')
+    val dop = listOf('-', ' ', '%', '+')
+    var resl = -1
+    var jump = -1
+    var final = ""
+    for (i in jumps) {
+        if (i !in numbers && i !in dop) return -1
+        if (i in numbers) {
+            if (jump != -1) jump = -1
+            final += i
+        } else if (final.isNotEmpty()) {
+            jump = final.toInt()
+            final = ""
+        }
+        if (i == '+' && jump != -1) resl = max(resl, jump)
+    }
+    return resl
+}
 
 /**
  * Сложная
@@ -133,7 +227,28 @@ fun bestHighJump(jumps: String): Int = TODO()
  * Вернуть значение выражения (6 для примера).
  * Про нарушении формата входной строки бросить исключение IllegalArgumentException
  */
-fun plusMinus(expression: String): Int = TODO()
+fun plusMinus(expression: String): Int {
+    if (expression.isEmpty()) throw IllegalArgumentException()
+    val dop = listOf("-", "+")
+    var resl = 0
+    var a = -1
+    var b = 1
+    val rasdel = expression.split(' ')
+    for (i in rasdel.indices) {
+        if (rasdel[i] !in dop) {
+            try {
+                a = rasdel[i].toInt()
+            } catch (e: NumberFormatException) {
+                throw IllegalArgumentException()
+            }
+            resl += b * a
+        } else if (i != 0 && rasdel[i - 1] !in dop) {
+            b = if (rasdel[i] == "-") -1
+            else 1
+        } else throw IllegalArgumentException()
+    }
+    return if (a != -1) resl else throw IllegalArgumentException()
+}
 
 /**
  * Сложная
@@ -144,7 +259,17 @@ fun plusMinus(expression: String): Int = TODO()
  * Вернуть индекс начала первого повторяющегося слова, или -1, если повторов нет.
  * Пример: "Он пошёл в в школу" => результат 9 (индекс первого 'в')
  */
-fun firstDuplicateIndex(str: String): Int = TODO()
+fun firstDuplicateIndex(str: String): Int {
+    val parts = str.split(" ")
+    var last = ""
+    var a = 0
+    for (part in parts) {
+        if (part.toUpperCase() == last.toUpperCase() && part != "") return a - part.length - 1
+        a += part.length + 1
+        last = part
+    }
+    return -1
+}
 
 /**
  * Сложная
@@ -157,7 +282,28 @@ fun firstDuplicateIndex(str: String): Int = TODO()
  * или пустую строку при нарушении формата строки.
  * Все цены должны быть больше либо равны нуля.
  */
-fun mostExpensive(description: String): String = TODO()
+fun mostExpensive(description: String): String {
+    val parts = description.split("; ")
+    var maxPrice = -1.0
+    var price: Double
+    var resl = ""
+    if (parts.isEmpty()) return ""
+    for (part in parts) {
+        var couple = part.split(" ")
+        try {
+            price = couple[1].toDouble()
+        } catch (e: NumberFormatException) {
+            return ""
+        } catch (e: IndexOutOfBoundsException) {
+            return ""
+        }
+        if (price > maxPrice) {
+            resl = couple[0]
+            maxPrice = price
+        }
+    }
+    return resl
+}
 
 /**
  * Сложная
